@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"> <!-- Specifies the character encoding -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ensures responsiveness -->
+        <title>Rahul Calculator</title>
+        <link rel="stylesheet" type="text/css" href="../css/styles.css">
+    </head>
+<body>
+    <!--Rest of your code -->
+</body>
+</html>    
+    <div class="container">
+        <div class="tabs">
+            <button onclick="showCalculator('calculator')">Calculator</button>
+            <button onclick="showCalculator('cash-calculator')">Cash Calculator</button>
+        </div>
+
+        <div class="calculator active" id="calculator">
+            <div class="display" id="display">0</div>
+            <div class="history" id="history"></div>
+            <div class="buttons">
+                <button class="btn-clear" onclick="clearDisplay()">C</button>
+                <button onclick="calculatePercentage()">%</button>
+                <button onclick="appendValue('*')">*</button>
+                <button onclick="backspace()">&#9003;</button>
+                <button onclick="toggleSign()">+/-</button>
+                <button onclick="appendValue('1')">1</button>
+                <button onclick="appendValue('2')">2</button>
+                <button onclick="appendValue('3')">3</button>
+                <button onclick="appendValue('-')">-</button>
+                <button onclick="appendValue('4')">4</button>
+                <button onclick="appendValue('5')">5</button>
+                <button onclick="appendValue('6')">6</button>
+                <button onclick="appendValue('+')">+</button>
+                <button onclick="appendValue('7')">7</button>
+                <button onclick="appendValue('8')">8</button>
+                <button onclick="appendValue('9')">9</button>
+                <button onclick="appendValue('/')">/</button>
+                <button onclick="appendValue('.')">.</button>
+                <button onclick="appendValue('0')">0</button>
+
+                <button class="btn-equal" onclick="calculate()">=</button>
+            </div>
+            <button class="clear-history" onclick="clearHistory('history')">Clear History</button>
+        </div>
+
+        <div class="cash-calculator" id="cash-calculator">
+            <div class="cash-table">
+                <div>
+                    <label for="note500">₹500</label>
+                    <input type="number" id="note500" value="0" title="Enter the number of ₹500 notes">
+                </div>
+                <div>
+                    <label for="note200">₹200</label>
+                    <input type="number" id="note200" value="0" title="Enter the number of ₹200 notes">
+                </div>
+                <div>
+                    <label for="note100">₹100</label>
+                    <input type="number" id="note100" value="0" title="Enter the number of ₹100 notes">
+                </div>
+                <div>
+                    <label for="note50">₹50</label>
+                    <input type="number" id="note50" value="0" title="Enter the number of ₹50 notes">
+                </div>
+                <div>
+                    <label for="note20">₹20</label>
+                    <input type="number" id="note20" value="0" title="Enter the number of ₹20 notes">
+                </div>
+                <div>
+                    <label for="note10">₹10</label>
+                    <input type="number" id="note10" value="0" title="Enter the number of ₹10 notes">
+                </div>
+                <div>
+                    <label for="coins">Coins</label>
+                    <input type="number" id="coins" value="0" title="Enter the total value of coins">
+                </div>
+            </div>
+            <div class="display" id="cash-display">Total: ₹0</div>
+            <div class="history" id="cash-history"></div>
+            <button class="clear-history" onclick="clearHistory('cash-history')">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+        function showCalculator(type) {
+            document.getElementById('calculator').classList.remove('active');
+            document.getElementById('cash-calculator').classList.remove('active');
+            document.getElementById(type).classList.add('active');
+        }
+
+        function backspace() {
+            const display = document.getElementById('display');
+            if (display.innerText.length > 1) {
+                display.innerText = display.innerText.slice(0, -1);
+            } else {
+                display.innerText = '0';
+            }
+            adjustDisplay();
+        }
+
+        function toggleSign() {
+            const display = document.getElementById('display');
+            let value = display.innerText;
+
+            if (value === '0' || value === '') return;
+
+            if (value.startsWith('-')) {
+                display.innerText = value.substring(1);
+            } else {
+                display.innerText = '-' + value;
+            }
+
+            adjustDisplay();
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (document.getElementById('calculator').classList.contains('active')) {
+                if (event.key === 'Enter') calculate();
+                if (event.key === 'Delete') clearDisplay();
+                if (event.key === 'Backspace') backspace();
+                if (!isNaN(event.key) || ['+', '-', '*', '/', '.'].includes(event.key)) {
+                    appendValue(event.key);
+                }
+            }
+            if (document.getElementById('cash-calculator').classList.contains('active')) {
+                if (event.key === 'Enter') calculateCash();
+                if (event.key === 'Delete') clearCashCalculatorInputs();
+            }
+        });
+
+        function appendValue(value) {
+            const display = document.getElementById('display');
+            const maxChars = 60;
+
+            if (display.innerText.length >= maxChars) {
+                return;
+            }
+
+            if (display.innerText === '0') {
+                display.innerText = value;
+            } else {
+                display.innerText += value;
+            }
+
+            adjustDisplay();
+        }
+
+        function adjustDisplay() {
+            const display = document.getElementById('display');
+            const maxCharsPerLine = 20;
+            const maxLines = 3;
+
+            let text = display.innerText.replace(/\n/g, "");
+            let newText = "";
+            let lineCount = 1;
+
+            for (let i = 0; i < text.length; i++) {
+                if (i > 0 && i % maxCharsPerLine === 0) {
+                    if (lineCount >= maxLines) {
+                        newText = newText.slice(0, -1);
+                        break;
+                    }
+                    newText += "\n";
+                    lineCount++;
+                }
+                newText += text[i];
+            }
+            display.innerText = newText;
+
+            if (text.length > 30) {
+                display.style.fontSize = "1rem";
+            } else if (text.length > 20) {
+                display.style.fontSize = "1.3rem";
+            } else if (text.length > 10) {
+                display.style.fontSize = "1.7rem";
+            } else {
+                display.style.fontSize = "2rem";
+            }
+
+            display.style.whiteSpace = "pre-wrap";
+            display.style.wordWrap = "break-word";
+        }
+
+        function calculatePercentage() {
+            const display = document.getElementById('display');
+            if (display.innerText !== '0' && display.innerText !== '') {
+                display.innerText = (new Function('return ' + display.innerText)() / 100).toString();
+            }
+        }
+
+        function calculate() {
+            const display = document.getElementById('display');
+            const history = document.getElementById('history');
+            try {
+                const result = new Function('return ' + display.innerText)();
+                history.innerHTML += `${display.innerText} = ${result} <br>`;
+                display.innerText = result;
+            } catch {
+                display.innerText = 'Error';
+            }
+        }
+
+        function clearDisplay() { document.getElementById('display').innerText = '0'; }
+
+        function calculateCash() {
+            let total = 0;
+            const values = [500, 200, 100, 50, 20, 10];
+            values.forEach(val => total += (parseInt(document.getElementById(`note${val}`).value) || 0) * val);
+            total += parseInt(document.getElementById('coins').value) || 0;
+            document.getElementById('cash-display').innerText = `Total: ₹${total}`;
+            document.getElementById('cash-history').innerHTML += `₹${total} <br>`;
+        }
+
+        function clearCashCalculatorInputs() {
+            const ids = ['note500', 'note200', 'note100', 'note50', 'note20', 'note10', 'coins'];
+            ids.forEach(id => document.getElementById(id).value = '');
+        }
+
+        function clearHistory(id) { document.getElementById(id).innerHTML = ''; }
+    </script>
+</body>
+</html>
